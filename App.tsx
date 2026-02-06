@@ -16,7 +16,8 @@ function App() {
     const saved = localStorage.getItem('tavern_profile');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Se tiver perfil salvo mas sem ID ou com ID de mock inválido, tenta registrar novamente
+
+      // Se for um ID offline, tenta conectar e transformar em online
       if (!parsed.id || parsed.id === 'offline-id' || parsed.id.startsWith('offline-')) {
         GameService.createProfile(parsed.name, parsed.avatarSeed).then(({ profile }) => {
           if (profile) {
@@ -27,14 +28,24 @@ function App() {
           }
         });
       } else {
-
-        // Migration for profiles without coins
-        const finalProfile = { ...parsed, coins: parsed.coins ?? 100 };
-        if (finalProfile.coins !== parsed.coins) {
-          localStorage.setItem('tavern_profile', JSON.stringify(finalProfile));
-        }
-        setProfile(finalProfile);
-        setScreen('hub');
+        // Se já tem um ID que parece online, VERIFICA se ele é válido no banco
+        GameService.verifyProfile(parsed.id).then(({ profile: verified, error }) => {
+          if (verified) {
+            // ID é válido, mantém
+            const finalProfile = { ...parsed, coins: parsed.coins ?? 100 };
+            setProfile(finalProfile);
+            setScreen('hub');
+          } else {
+            // ID era inválido (stale do antigo ou deletado), tenta RE-REGISTRAR pelo nome
+            console.log("⚠️ ID de perfil inválido detectado. Tentando recuperar pelo nome...");
+            GameService.createProfile(parsed.name, parsed.avatarSeed).then(({ profile: recovered }) => {
+              const updated = recovered || { ...parsed, id: 'offline-' + Math.random().toString(36).substring(7) };
+              localStorage.setItem('tavern_profile', JSON.stringify(updated));
+              setProfile(updated);
+              setScreen('hub');
+            });
+          }
+        });
       }
     }
   }, []);

@@ -17,6 +17,8 @@ export const GameService = {
     // Cria ou atualiza perfil do jogador
     async createProfile(name: string, avatarSeed: string): Promise<{ profile?: UserProfile; error?: any }> {
         try {
+            console.log(`🔍 [DB] Tentando criar ou recuperar perfil para: ${name}`);
+
             // First, try to fetch if it already exists (by name)
             const { data: existing, error: fetchError } = await supabase
                 .from('profiles')
@@ -25,7 +27,7 @@ export const GameService = {
                 .maybeSingle();
 
             if (existing) {
-                console.log('✅ [DB] Profile already exists, using it.');
+                console.log('✅ [DB] Perfil encontrado via Username:', existing.id);
                 return {
                     profile: {
                         id: existing.id,
@@ -46,9 +48,29 @@ export const GameService = {
                 .select()
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                // Se o erro for de unicidade (código 23505), tenta buscar de novo (race condition)
+                if (error.code === '23505') {
+                    const { data: retryData } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('username', name)
+                        .single();
+                    if (retryData) {
+                        return {
+                            profile: {
+                                id: retryData.id,
+                                name: retryData.username,
+                                avatarSeed: retryData.avatar_seed,
+                                coins: retryData.coins || 0
+                            }
+                        };
+                    }
+                }
+                throw error;
+            }
 
-            console.log('✅ [DB] Profile created successfully.');
+            console.log('✅ [DB] Perfil criado com sucesso:', data.id);
             return {
                 profile: {
                     id: data.id,
@@ -58,17 +80,41 @@ export const GameService = {
                 }
             };
         } catch (error: any) {
-            console.error('❌ [DB] Erro ao criar/buscar perfil:', error);
-            // Fallback para offline apenas se realmente não conseguir conectar
+            console.error('❌ [DB] Erro fatal em createProfile:', error);
             return {
                 profile: {
-                    id: 'offline-' + uuidv4().substring(0, 8), // Mark as offline
+                    id: 'offline-' + uuidv4().substring(0, 8),
                     name,
                     avatarSeed,
                     coins: 0
                 },
                 error
             };
+        }
+    },
+
+    // Verifica se um ID de perfil existe no banco
+    async verifyProfile(id: string): Promise<{ profile?: UserProfile; error?: any }> {
+        if (!id || id.startsWith('offline-')) return { error: 'ID Offline' };
+
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+            return {
+                profile: {
+                    id: data.id,
+                    name: data.username,
+                    avatarSeed: data.avatar_seed,
+                    coins: data.coins || 0
+                }
+            };
+        } catch (error) {
+            return { error };
         }
     },
 
