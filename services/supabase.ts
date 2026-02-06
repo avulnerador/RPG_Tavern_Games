@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
 
 // --- MOCK IMPLEMENTATION FOR OFFLINE MODE ---
 class MockChannel {
@@ -21,9 +22,6 @@ class MockChannel {
 
   send(message: { type: string; event: string; payload?: any }) {
     // In local mode, we don't broadcast to "others", we just handle logic locally in the component.
-    // However, if we wanted to simulate network events, we could trigger listeners here.
-    // For this specific app architecture, the optimistic UI updates handle the local player,
-    // so we mainly need this to not crash.
     return Promise.resolve();
   }
 
@@ -35,6 +33,26 @@ class MockChannel {
 const mockSupabase = {
   channel: (topic: string) => new MockChannel(topic),
   removeChannel: () => { },
+  from: (table: string) => ({
+    select: () => ({
+      eq: () => ({
+        single: () => Promise.resolve({ data: null, error: { message: "MODO OFFLINE: Banco de dados indisponível (Verifique chaves no .env)" } }),
+        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+      }),
+    }),
+    insert: (data: any) => ({
+      select: () => ({
+        single: () => Promise.resolve({
+          data: { id: uuidv4(), ...data },
+          error: null
+        }),
+      }),
+      then: (onfulfilled: any) => Promise.resolve({ error: null }).then(onfulfilled)
+    }),
+    update: () => ({
+      eq: () => Promise.resolve({ error: null })
+    })
+  }),
 };
 
 // --- REAL SUPABASE INIT ---
@@ -45,8 +63,8 @@ const getEnv = (key: string) => {
 };
 
 const getStoredCredentials = () => {
-  const url = localStorage.getItem('sb_url') || getEnv('SUPABASE_URL') || '';
-  const key = localStorage.getItem('sb_key') || getEnv('SUPABASE_ANON_KEY') || '';
+  const url = localStorage.getItem('sb_url') || getEnv('VITE_SUPABASE_URL') || '';
+  const key = localStorage.getItem('sb_key') || getEnv('VITE_SUPABASE_ANON_KEY') || '';
   return { url, key };
 };
 
@@ -61,7 +79,6 @@ if (isConfigured) {
 }
 
 // Export either the real client or the mock client
-// We cast mockSupabase to any to bypass strict typing for now
 export const supabase = (isConfigured
   ? createClient(url, key, { realtime: { params: { eventsPerSecond: 10 } } })
   : mockSupabase) as unknown as SupabaseClient;

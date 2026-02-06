@@ -10,6 +10,7 @@ export interface Room {
     game_type: GameType;
     status: 'waiting' | 'playing' | 'finished';
     created_at: string;
+    stake: number;
 }
 
 export const GameService = {
@@ -48,7 +49,7 @@ export const GameService = {
     },
 
     // Cria uma nova sala
-    async createRoom(gameType: GameType, hostId: string): Promise<{ code: string; error?: any }> {
+    async createRoom(gameType: GameType, hostId: string, stake: number = 0): Promise<{ code: string; error?: any }> {
         try {
             // Gera um código de 4 letras maiúsculas
             const code = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -59,7 +60,8 @@ export const GameService = {
                     code,
                     host_id: hostId,
                     game_type: gameType,
-                    status: 'waiting'
+                    status: 'waiting',
+                    stake // Add stake
                 });
 
             if (error) throw error;

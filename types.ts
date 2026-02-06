@@ -4,6 +4,7 @@ export interface UserProfile {
   id?: string;
   name: string;
   avatarSeed: string;
+  coins: number;
 }
 
 export type AppScreen = 'profile' | 'hub' | 'game';
@@ -32,7 +33,10 @@ export interface GameState {
   turn: PlayerId;
   winner: PlayerId | 'draw' | null;
   isGameOver: boolean;
+  gameStatus: 'waiting' | 'ready_to_start' | 'deciding' | 'playing' | 'finished' | 'disconnected';
 }
+
+export type GameStatus = GameState['gameStatus'];
 
 export interface MovePayload {
   column: number;
@@ -50,4 +54,5 @@ export interface TableSession {
   gameId: string;
   isHost: boolean;
   isOffline: boolean;
+  stake?: number;
 }

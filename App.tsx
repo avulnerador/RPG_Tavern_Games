@@ -16,18 +16,24 @@ function App() {
     const saved = localStorage.getItem('tavern_profile');
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Se tiver perfil salvo mas sem ID (versão antiga), tenta registrar
-      if (!parsed.id) {
+      // Se tiver perfil salvo mas sem ID ou com ID de mock inválido, tenta registrar novamente
+      if (!parsed.id || parsed.id === 'offline-id') {
         GameService.createProfile(parsed.name, parsed.avatarSeed).then(({ profile }) => {
           if (profile) {
-            const updated = { ...parsed, id: profile.id };
+            const updated = { ...parsed, id: profile.id, coins: parsed.coins || 100 };
             localStorage.setItem('tavern_profile', JSON.stringify(updated));
             setProfile(updated);
             setScreen('hub');
           }
         });
       } else {
-        setProfile(parsed);
+
+        // Migration for profiles without coins
+        const finalProfile = { ...parsed, coins: parsed.coins ?? 100 };
+        if (finalProfile.coins !== parsed.coins) {
+          localStorage.setItem('tavern_profile', JSON.stringify(finalProfile));
+        }
+        setProfile(finalProfile);
         setScreen('hub');
       }
     }
@@ -38,8 +44,9 @@ function App() {
     const { profile: serverProfile, error } = await GameService.createProfile(newProfile.name, newProfile.avatarSeed);
 
     // 2. Mescla o profile local com o retornado (que tem ID)
-    const finalProfile = serverProfile || newProfile;
 
+    const baseProfile = serverProfile || newProfile;
+    const finalProfile = { ...baseProfile, coins: baseProfile.coins ?? 100 };
     setProfile(finalProfile);
     localStorage.setItem('tavern_profile', JSON.stringify(finalProfile));
     setScreen('hub');
@@ -51,15 +58,47 @@ function App() {
     setScreen('profile');
   };
 
+  const handleUpdateCoins = React.useCallback((newAmount: number) => {
+    if (!profile) return;
+    const updated = { ...profile, coins: newAmount };
+    // Only update if changed to avoid loop (though profile object change causes re-render anyway)
+    // Actually, we must rely on ref stability in hooks, but useCallback here helps.
+    setProfile(prev => {
+      if (!prev) return prev;
+      if (prev.coins === newAmount) return prev;
+      const up = { ...prev, coins: newAmount };
+      localStorage.setItem('tavern_profile', JSON.stringify(up));
+      return up;
+    });
+  }, [profile?.id]); // Depend on ID or just empty if we use functional update for setProfile, but we need profile for other fields.
+  // Wait, if we use setProfile(prev => ...), we don't need profile in dependency?
+  // But we need the REST of the profile.
+  // Correct implementation:
+
+  /*
+  const handleUpdateCoins = React.useCallback((newAmount: number) => {
+    setProfile(prev => {
+        if (!prev) return null;
+        if (prev.coins === newAmount) return prev;
+        const updated = { ...prev, coins: newAmount };
+        localStorage.setItem('tavern_profile', JSON.stringify(updated));
+        return updated;
+    });
+  }, []);
+  */
+  // I will use this better implementation.
+
   // O Mestre cria a mesa para um jogo específico
-  const handleCreateSession = async (gameId: string, isOffline: boolean) => {
+  const handleCreateSession = async (gameId: string, isOffline: boolean, stake: number = 0) => {
     if (isOffline) {
       setCurrentSession({
         code: 'LOCAL',
         gameId,
         isHost: true,
-        isOffline: true
+        isOffline: true,
+        stake
       });
+
       setScreen('game');
       return;
     }
@@ -67,7 +106,8 @@ function App() {
     // Online: Cria sala no Supabase
     if (!profile?.id) return alert("Erro de Perfil: Sem ID.");
 
-    const { code, error } = await GameService.createRoom(gameId as any, profile.id);
+    // Pass stake to createRoom
+    const { code, error } = await GameService.createRoom(gameId as any, profile.id, stake);
     if (error) {
       alert("Erro ao criar sala: " + error.message);
       return;
@@ -77,7 +117,8 @@ function App() {
       code,
       gameId,
       isHost: true,
-      isOffline: false
+      isOffline: false,
+      stake
     });
     setScreen('game');
   };
@@ -103,7 +144,8 @@ function App() {
       code: room.code,
       gameId: room.game_type,
       isHost: false, // Quem entra nunca é host
-      isOffline: false
+      isOffline: false,
+      stake: room.stake || 0 // Retrieve stake from room
     });
     setScreen('game');
   };
@@ -124,7 +166,9 @@ function App() {
           profile={profile}
           onCreateSession={handleCreateSession}
           onJoinSession={handleJoinSession}
+
           onLogout={handleLogout}
+          onUpdateCoins={handleUpdateCoins}
         />
       )}
 
@@ -137,6 +181,9 @@ function App() {
               avatarSeed={profile.avatarSeed}
               isHost={currentSession.isHost}
               isOffline={currentSession.isOffline}
+              myCoins={profile.coins}
+              onUpdateCoins={handleUpdateCoins}
+              stake={currentSession.stake}
               onLeave={handleLeaveGame}
             />
           )}
@@ -148,6 +195,9 @@ function App() {
               avatarSeed={profile.avatarSeed}
               isHost={currentSession.isHost}
               isOffline={currentSession.isOffline}
+              myCoins={profile.coins}
+              onUpdateCoins={handleUpdateCoins}
+              stake={currentSession.stake}
               onLeave={handleLeaveGame}
             />
           )}
@@ -158,6 +208,9 @@ function App() {
               isHost={currentSession.isHost}
               playerName={profile.name}
               avatarSeed={profile.avatarSeed}
+              isOffline={currentSession.isOffline}
+              myCoins={profile.coins}
+              onUpdateCoins={handleUpdateCoins}
               onLeave={handleLeaveGame}
             />
           )}
