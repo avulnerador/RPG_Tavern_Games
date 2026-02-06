@@ -1,6 +1,7 @@
 export type PlayerId = 'host' | 'guest';
 
 export interface UserProfile {
+  id?: string;
   name: string;
   avatarSeed: string;
 }
@@ -8,10 +9,10 @@ export interface UserProfile {
 export type AppScreen = 'profile' | 'hub' | 'game';
 
 export interface Die {
-  id: string; 
+  id: string;
   value: number;
-  isDestroyed?: boolean; 
-  isNew?: boolean; 
+  isDestroyed?: boolean;
+  isNew?: boolean;
 }
 
 export type Grid = [Die[], Die[], Die[]];

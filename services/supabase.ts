@@ -26,7 +26,7 @@ class MockChannel {
     // so we mainly need this to not crash.
     return Promise.resolve();
   }
-  
+
   unsubscribe() {
     return Promise.resolve();
   }
@@ -34,18 +34,14 @@ class MockChannel {
 
 const mockSupabase = {
   channel: (topic: string) => new MockChannel(topic),
-  removeChannel: () => {},
+  removeChannel: () => { },
 };
 
 // --- REAL SUPABASE INIT ---
 
 const getEnv = (key: string) => {
-  try {
-    // @ts-ignore
-    return process.env[key];
-  } catch (e) {
-    return undefined;
-  }
+  // @ts-ignore
+  return typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env[key] : undefined;
 };
 
 const getStoredCredentials = () => {
@@ -56,22 +52,28 @@ const getStoredCredentials = () => {
 
 const { url, key } = getStoredCredentials();
 const isValidUrl = (u: string) => u && (u.startsWith('https://') || u.startsWith('http://'));
-export const isConfigured = isValidUrl(url) && key;
+export const isConfigured = isValidUrl(url) && !!key;
+
+if (isConfigured) {
+  console.log('🔌 Supabase Configured:', url);
+} else {
+  console.log('⚠️ Supabase NOT Configured. Running in Offline Mode.');
+}
 
 // Export either the real client or the mock client
 // We cast mockSupabase to any to bypass strict typing for now
-export const supabase = (isConfigured 
-  ? createClient(url, key, { realtime: { params: { eventsPerSecond: 10 } } }) 
+export const supabase = (isConfigured
+  ? createClient(url, key, { realtime: { params: { eventsPerSecond: 10 } } })
   : mockSupabase) as unknown as SupabaseClient;
 
 export const saveCredentials = (newUrl: string, newKey: string) => {
-    localStorage.setItem('sb_url', newUrl);
-    localStorage.setItem('sb_key', newKey);
-    window.location.reload();
+  localStorage.setItem('sb_url', newUrl);
+  localStorage.setItem('sb_key', newKey);
+  window.location.reload();
 };
 
 export const clearCredentials = () => {
-    localStorage.removeItem('sb_url');
-    localStorage.removeItem('sb_key');
-    window.location.reload();
+  localStorage.removeItem('sb_url');
+  localStorage.removeItem('sb_key');
+  window.location.reload();
 };

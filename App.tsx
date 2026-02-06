@@ -5,6 +5,7 @@ import { KnucklebonesBoard } from './games/knucklebones/KnucklebonesBoard';
 import { TicTacToeBoard } from './games/tictactoe/TicTacToeBoard';
 import { BugRaceBoard } from './games/bugrace/BugRaceBoard';
 import { UserProfile, AppScreen, TableSession } from './types';
+import { GameService } from './services/gameService';
 
 function App() {
   const [screen, setScreen] = useState<AppScreen>('profile');
@@ -14,14 +15,33 @@ function App() {
   useEffect(() => {
     const saved = localStorage.getItem('tavern_profile');
     if (saved) {
-      setProfile(JSON.parse(saved));
-      setScreen('hub');
+      const parsed = JSON.parse(saved);
+      // Se tiver perfil salvo mas sem ID (versão antiga), tenta registrar
+      if (!parsed.id) {
+        GameService.createProfile(parsed.name, parsed.avatarSeed).then(({ profile }) => {
+          if (profile) {
+            const updated = { ...parsed, id: profile.id };
+            localStorage.setItem('tavern_profile', JSON.stringify(updated));
+            setProfile(updated);
+            setScreen('hub');
+          }
+        });
+      } else {
+        setProfile(parsed);
+        setScreen('hub');
+      }
     }
   }, []);
 
-  const handleProfileComplete = (newProfile: UserProfile) => {
-    setProfile(newProfile);
-    localStorage.setItem('tavern_profile', JSON.stringify(newProfile));
+  const handleProfileComplete = async (newProfile: UserProfile) => {
+    // 1. Tenta criar perfil no Supabase
+    const { profile: serverProfile, error } = await GameService.createProfile(newProfile.name, newProfile.avatarSeed);
+
+    // 2. Mescla o profile local com o retornado (que tem ID)
+    const finalProfile = serverProfile || newProfile;
+
+    setProfile(finalProfile);
+    localStorage.setItem('tavern_profile', JSON.stringify(finalProfile));
     setScreen('hub');
   };
 
@@ -32,27 +52,57 @@ function App() {
   };
 
   // O Mestre cria a mesa para um jogo específico
-  const handleCreateSession = (gameId: string, isOffline: boolean) => {
-    const code = isOffline ? 'LOCAL' : Math.random().toString(36).substring(2, 6).toUpperCase();
+  const handleCreateSession = async (gameId: string, isOffline: boolean) => {
+    if (isOffline) {
+      setCurrentSession({
+        code: 'LOCAL',
+        gameId,
+        isHost: true,
+        isOffline: true
+      });
+      setScreen('game');
+      return;
+    }
+
+    // Online: Cria sala no Supabase
+    if (!profile?.id) return alert("Erro de Perfil: Sem ID.");
+
+    const { code, error } = await GameService.createRoom(gameId as any, profile.id);
+    if (error) {
+      alert("Erro ao criar sala: " + error.message);
+      return;
+    }
+
     setCurrentSession({
       code,
       gameId,
       isHost: true,
-      isOffline
+      isOffline: false
     });
     setScreen('game');
   };
 
   // O Jogador entra em uma mesa existente via código
-  const handleJoinSession = (code: string) => {
+  const handleJoinSession = async (code: string) => {
     if (!code) return alert("Insira o código da mesa!");
-    
-    // NOTE: In a real app with Supabase, we would fetch the game type associated with this room code here.
-    // For now, we will default to Knucklebones for generic codes, or check a prefix/mock.
+
+    // Busca sala no Supabase
+    const { room, error } = await GameService.getRoom(code);
+
+    if (error || !room) {
+      alert("Sala não encontrada!");
+      return;
+    }
+
+    if (room.status === 'finished') {
+      alert("Esta partida já acabou.");
+      return;
+    }
+
     setCurrentSession({
-      code: code.toUpperCase(),
-      gameId: 'knucklebones', 
-      isHost: false,
+      code: room.code,
+      gameId: room.game_type,
+      isHost: false, // Quem entra nunca é host
       isOffline: false
     });
     setScreen('game');
@@ -70,11 +120,11 @@ function App() {
       )}
 
       {screen === 'hub' && profile && (
-        <GameHub 
-          profile={profile} 
+        <GameHub
+          profile={profile}
           onCreateSession={handleCreateSession}
           onJoinSession={handleJoinSession}
-          onLogout={handleLogout} 
+          onLogout={handleLogout}
         />
       )}
 
@@ -114,8 +164,8 @@ function App() {
 
           {currentSession.gameId !== 'knucklebones' && currentSession.gameId !== 'duel_grimoire' && currentSession.gameId !== 'bug_derby' && (
             <div className="flex flex-col items-center justify-center min-h-screen">
-               <h2 className="text-2xl text-tavern-gold">Jogo não encontrado...</h2>
-               <button onClick={handleLeaveGame} className="mt-4 text-tavern-parchment underline">Voltar</button>
+              <h2 className="text-2xl text-tavern-gold">Jogo não encontrado...</h2>
+              <button onClick={handleLeaveGame} className="mt-4 text-tavern-parchment underline">Voltar</button>
             </div>
           )}
         </>
