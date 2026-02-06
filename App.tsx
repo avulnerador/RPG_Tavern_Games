@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ProfileSetup } from './components/ProfileSetup';
 import { GameHub } from './components/GameHub';
-import { GameBoard } from './components/GameBoard';
+import { KnucklebonesBoard } from './games/knucklebones/KnucklebonesBoard';
+import { TicTacToeBoard } from './games/tictactoe/TicTacToeBoard';
+import { BugRaceBoard } from './games/bugrace/BugRaceBoard';
 import { UserProfile, AppScreen, TableSession } from './types';
 
 function App() {
@@ -45,8 +47,8 @@ function App() {
   const handleJoinSession = (code: string) => {
     if (!code) return alert("Insira o código da mesa!");
     
-    // Por enquanto, como só temos o Knucklebones, redirecionamos para ele.
-    // Futuramente, haveria uma busca no Supabase para saber qual o gameId deste código.
+    // NOTE: In a real app with Supabase, we would fetch the game type associated with this room code here.
+    // For now, we will default to Knucklebones for generic codes, or check a prefix/mock.
     setCurrentSession({
       code: code.toUpperCase(),
       gameId: 'knucklebones', 
@@ -78,8 +80,8 @@ function App() {
 
       {screen === 'game' && currentSession && profile && (
         <>
-          {currentSession.gameId === 'knucklebones' ? (
-            <GameBoard
+          {currentSession.gameId === 'knucklebones' && (
+            <KnucklebonesBoard
               roomCode={currentSession.code}
               playerName={profile.name}
               avatarSeed={profile.avatarSeed}
@@ -87,9 +89,32 @@ function App() {
               isOffline={currentSession.isOffline}
               onLeave={handleLeaveGame}
             />
-          ) : (
+          )}
+
+          {currentSession.gameId === 'duel_grimoire' && (
+            <TicTacToeBoard
+              roomCode={currentSession.code}
+              playerName={profile.name}
+              avatarSeed={profile.avatarSeed}
+              isHost={currentSession.isHost}
+              isOffline={currentSession.isOffline}
+              onLeave={handleLeaveGame}
+            />
+          )}
+
+          {currentSession.gameId === 'bug_derby' && (
+            <BugRaceBoard
+              roomCode={currentSession.code}
+              isHost={currentSession.isHost}
+              playerName={profile.name}
+              avatarSeed={profile.avatarSeed}
+              onLeave={handleLeaveGame}
+            />
+          )}
+
+          {currentSession.gameId !== 'knucklebones' && currentSession.gameId !== 'duel_grimoire' && currentSession.gameId !== 'bug_derby' && (
             <div className="flex flex-col items-center justify-center min-h-screen">
-               <h2 className="text-2xl text-tavern-gold">Jogo não encontrado ou em desenvolvimento...</h2>
+               <h2 className="text-2xl text-tavern-gold">Jogo não encontrado...</h2>
                <button onClick={handleLeaveGame} className="mt-4 text-tavern-parchment underline">Voltar</button>
             </div>
           )}

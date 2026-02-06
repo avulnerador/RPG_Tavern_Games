@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dices, Swords, Trophy, User, LogOut, Sparkles, Shield, Crown, Search, Beer, MonitorPlay, Scroll } from 'lucide-react';
+import { Dices, Swords, Trophy, User, LogOut, Sparkles, Shield, Crown, Search, Beer, MonitorPlay, Scroll, Bug } from 'lucide-react';
 import { UserProfile } from '../types';
 
 interface GameHubProps {
@@ -23,11 +23,20 @@ const GAMES = [
   {
     id: 'duel_grimoire',
     title: 'Duelo de Grimórios',
-    description: 'Aposte seus feitiços em um duelo de cartas para decidir quem paga a próxima rodada de hidromel.',
-    icon: <Sparkles className="text-stone-600" size={32} />,
-    difficulty: 'Médio',
+    description: 'Aposte seus feitiços em um duelo de runas (Fogo vs Gelo) para decidir quem paga a próxima rodada.',
+    icon: <Sparkles className="text-purple-400" size={32} />,
+    difficulty: 'Fácil',
     players: '2 Jogadores',
-    active: false
+    active: true
+  },
+  {
+    id: 'bug_derby',
+    title: 'Derby da Carapaça',
+    description: 'Aposte em corridas de insetos do submundo. Sorte, velocidade e caos em cada frame.',
+    icon: <Bug className="text-emerald-500" size={32} />,
+    difficulty: 'Sorte',
+    players: 'Solo',
+    active: true
   }
 ];
 
@@ -97,7 +106,7 @@ export const GameHub: React.FC<GameHubProps> = ({ profile, onCreateSession, onJo
            <div className="relative z-10">
               <h1 className="text-4xl md:text-5xl font-serif font-bold text-tavern-parchment mb-2">Salão de Jogos</h1>
               <p className="text-tavern-gold/60 max-w-xl italic text-lg">
-                "Onde heróis descansam e fortunas são decididas nos dados."
+                "Onde heróis descansam e fortunas são decididas nos dados e runas."
               </p>
            </div>
         </div>
@@ -169,12 +178,15 @@ export const GameHub: React.FC<GameHubProps> = ({ profile, onCreateSession, onJo
                     <MonitorPlay size={20} /> Jogar Local (Na Mesa)
                   </button>
 
-                  <button 
-                    onClick={() => onCreateSession(selectedGame, false)}
-                    className="w-full py-4 bg-tavern-gold hover:bg-yellow-600 text-tavern-900 rounded-xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95 border border-yellow-700 shadow-lg"
-                  >
-                    <Scroll size={20} /> Convocar Aventureiros (Online)
-                  </button>
+                  {/* Bug Derby não tem modo online ainda por ser single player/aposta local */}
+                  {selectedGame !== 'bug_derby' && (
+                    <button 
+                        onClick={() => onCreateSession(selectedGame, false)}
+                        className="w-full py-4 bg-tavern-gold hover:bg-yellow-600 text-tavern-900 rounded-xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95 border border-yellow-700 shadow-lg"
+                    >
+                        <Scroll size={20} /> Convocar Aventureiros (Online)
+                    </button>
+                  )}
 
                   <button 
                     onClick={() => setSelectedGame(null)}
