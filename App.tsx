@@ -17,7 +17,7 @@ function App() {
     if (saved) {
       const parsed = JSON.parse(saved);
       // Se tiver perfil salvo mas sem ID ou com ID de mock inválido, tenta registrar novamente
-      if (!parsed.id || parsed.id === 'offline-id') {
+      if (!parsed.id || parsed.id === 'offline-id' || parsed.id.startsWith('offline-')) {
         GameService.createProfile(parsed.name, parsed.avatarSeed).then(({ profile }) => {
           if (profile) {
             const updated = { ...parsed, id: profile.id, coins: parsed.coins || 100 };
@@ -105,6 +105,10 @@ function App() {
 
     // Online: Cria sala no Supabase
     if (!profile?.id) return alert("Erro de Perfil: Sem ID.");
+    if (profile.id.startsWith('offline-')) {
+      alert("⚠️ Você está em modo offline. Verifique sua conexão ou as chaves do Supabase para jogar online.");
+      return;
+    }
 
     // Pass stake to createRoom
     const { code, error } = await GameService.createRoom(gameId as any, profile.id, stake);

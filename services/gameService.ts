@@ -17,6 +17,26 @@ export const GameService = {
     // Cria ou atualiza perfil do jogador
     async createProfile(name: string, avatarSeed: string): Promise<{ profile?: UserProfile; error?: any }> {
         try {
+            // First, try to fetch if it already exists (by name)
+            const { data: existing, error: fetchError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('username', name)
+                .maybeSingle();
+
+            if (existing) {
+                console.log('✅ [DB] Profile already exists, using it.');
+                return {
+                    profile: {
+                        id: existing.id,
+                        name: existing.username,
+                        avatarSeed: existing.avatar_seed,
+                        coins: existing.coins || 0
+                    }
+                };
+            }
+
+            // If not, insert new
             const { data, error } = await supabase
                 .from('profiles')
                 .insert({
@@ -28,6 +48,7 @@ export const GameService = {
 
             if (error) throw error;
 
+            console.log('✅ [DB] Profile created successfully.');
             return {
                 profile: {
                     id: data.id,
@@ -36,16 +57,17 @@ export const GameService = {
                     coins: data.coins || 0
                 }
             };
-        } catch (error) {
-            console.error('Erro ao criar perfil:', error);
-            // Fallback para offline: retorna sem ID ou gera um ID falso
+        } catch (error: any) {
+            console.error('❌ [DB] Erro ao criar/buscar perfil:', error);
+            // Fallback para offline apenas se realmente não conseguir conectar
             return {
                 profile: {
-                    id: uuidv4(),
+                    id: 'offline-' + uuidv4().substring(0, 8), // Mark as offline
                     name,
                     avatarSeed,
                     coins: 0
-                }
+                },
+                error
             };
         }
     },
