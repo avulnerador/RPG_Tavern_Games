@@ -4,6 +4,8 @@ import { Coins } from 'lucide-react';
 
 interface CoinFlipOverlayProps {
     winnerName?: string;
+    isHost?: boolean;
+    onStartGame?: () => void;
 }
 
 export const CoinFlipOverlay: React.FC<CoinFlipOverlayProps> = ({ winnerName }) => {

@@ -20,7 +20,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return alert('Diga-nos o seu nome, forasteiro!');
-    onComplete({ name, avatarSeed: selectedAvatar });
+    onComplete({ name, avatarSeed: selectedAvatar, coins: 0 });
   };
 
   return (
@@ -59,12 +59,11 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setSelectedAvatar(seed)}
-                  className={`relative w-12 h-12 rounded-full border-2 overflow-hidden transition-all ${
-                    selectedAvatar === seed ? 'border-tavern-gold ring-2 ring-tavern-gold/30' : 'border-stone-700 opacity-60 grayscale hover:grayscale-0'
-                  }`}
+                  className={`relative w-12 h-12 rounded-full border-2 overflow-hidden transition-all ${selectedAvatar === seed ? 'border-tavern-gold ring-2 ring-tavern-gold/30' : 'border-stone-700 opacity-60 grayscale hover:grayscale-0'
+                    }`}
                 >
-                  <img 
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=c0aede`} 
+                  <img
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=c0aede`}
                     alt={seed}
                     className="w-full h-full object-cover"
                   />

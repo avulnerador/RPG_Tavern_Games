@@ -1,6 +1,6 @@
 
 import { useState, useRef, useCallback } from 'react';
-import { PlayerBet, NpcBet, BugRaceConfig } from '../types';
+import { PlayerBet, NpcBet, GameConfig } from '../types';
 
 export const useBugRaceBetting = (
     minBet: number,
@@ -64,7 +64,7 @@ export const useBugRaceBetting = (
         }));
     };
 
-    const generateNPCBets = (density: BugRaceConfig['npcDensity'], minBet: number) => {
+    const generateNPCBets = (density: GameConfig['npcDensity'], minBet: number) => {
         const bugs = ['tank', 'speedster', 'void', 'golden'];
         const bets: NpcBet[] = [];
         let count = 0;

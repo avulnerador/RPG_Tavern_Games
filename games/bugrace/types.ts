@@ -1,5 +1,5 @@
 
-export interface BugRaceConfig {
+export interface GameConfig {
     initialCoins: number;
     minBet: number;
     npcDensity: 'none' | 'low' | 'medium' | 'high';

@@ -32,7 +32,8 @@ export const GameService = {
                 profile: {
                     id: data.id,
                     name: data.username,
-                    avatarSeed: data.avatar_seed
+                    avatarSeed: data.avatar_seed,
+                    coins: data.coins || 0
                 }
             };
         } catch (error) {
@@ -42,7 +43,8 @@ export const GameService = {
                 profile: {
                     id: uuidv4(),
                     name,
-                    avatarSeed
+                    avatarSeed,
+                    coins: 0
                 }
             };
         }
