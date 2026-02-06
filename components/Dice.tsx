@@ -39,44 +39,41 @@ const Particle = ({ color, index }: { color: string, index: number }) => {
 
 export const Dice: React.FC<DiceProps> = ({ value, isDestroyed, size = 'md' }) => {
   const sizeClasses = {
-    sm: 'w-10 h-10',
-    md: 'w-16 h-16 md:w-20 md:h-20',
+    sm: 'w-8 h-8',
+    md: 'w-14 h-14 md:w-16 md:h-16', // Ajustado para caber melhor na coluna
     lg: 'w-24 h-24 md:w-28 md:h-28',
   };
 
   const dotSize = size === 'sm' ? 4 : 8;
 
   return (
-    <div className="relative">
+    <div className={`relative ${sizeClasses[size]} flex-shrink-0`}>
       <AnimatePresence mode="popLayout">
         {!isDestroyed && (
           <motion.div
-            layout
-            initial={{ scale: 0, rotate: -180, opacity: 0 }}
+            initial={{ scale: 0, rotate: -180, opacity: 0, y: -50 }}
             animate={{ 
               scale: 1, 
               rotate: 0, 
               opacity: 1,
-              y: [0, -20, 0],
+              y: 0, 
             }}
             exit={{ 
-              scale: [1, 1.4, 0], 
-              rotate: [0, 15, -45], 
+              scale: [1, 1.2, 0], 
+              rotate: [0, 10, -10], 
               opacity: 0,
-              filter: 'brightness(3)',
-              transition: { duration: 0.4 } 
+              filter: 'brightness(2)',
+              transition: { duration: 0.3 } 
             }}
             transition={{ 
               type: 'spring', 
-              stiffness: 300, 
-              damping: 20,
-              layout: { duration: 0.3, type: "spring" }
+              stiffness: 260, 
+              damping: 20
             }}
-            className={`${sizeClasses[size]} bg-[#f5f5f4] rounded-2xl shadow-[0_5px_0_#d4d4d4] flex relative border-2 border-stone-300 overflow-hidden z-10`}
+            className={`w-full h-full bg-[#f5f5f4] rounded-xl shadow-[0_4px_0_#d4d4d4] flex relative border-2 border-stone-300 overflow-hidden z-10`}
           >
-            {/* Bone/Ivory Texture Effect */}
+            {/* Texture */}
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/granite.png')]"></div>
-            <div className="absolute inset-0 bg-gradient-to-tr from-stone-200/50 to-transparent"></div>
             
             <div className="relative w-full h-full">
                {dotPositions[value]?.map((pos, i) => (
@@ -99,8 +96,8 @@ export const Dice: React.FC<DiceProps> = ({ value, isDestroyed, size = 'md' }) =
 
       <AnimatePresence>
         {isDestroyed && (
-          <div className="absolute inset-0 pointer-events-none">
-            {[...Array(10)].map((_, i) => (
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+            {[...Array(8)].map((_, i) => (
               <Particle key={i} index={i} color={i % 2 === 0 ? "bg-tavern-accent" : "bg-tavern-parchment"} />
             ))}
           </div>
