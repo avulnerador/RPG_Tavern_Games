@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ossos da Taverna: Knucklebones RPG</title>
+    
+    <!-- Tailwind via CDN para manter compatibilidade rápida, embora npm seja recomendado para prod -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -11,12 +13,12 @@
           extend: {
             colors: {
               tavern: {
-                900: '#1c1917', // Pedra de masmorra
-                800: '#2d1a12', // Madeira escura
-                700: '#451a03', // Marrom taverna
-                accent: '#92400e', // Âmbar/Cerveja
-                parchment: '#f5f5f4', // Papel antigo
-                gold: '#fbbf24', // Ouro de tesouro
+                900: '#1c1917',
+                800: '#2d1a12',
+                700: '#451a03',
+                accent: '#92400e',
+                parchment: '#f5f5f4',
+                gold: '#fbbf24',
               }
             },
             fontFamily: {
@@ -30,9 +32,11 @@
         },
       }
     </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
     <style>
       body {
         background-color: #1c1917;
@@ -58,16 +62,19 @@
     "react": "https://esm.sh/react@^19.2.4",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "react/": "https://esm.sh/react@^19.2.4/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
-    "framer-motion": "https://esm.sh/framer-motion@^12.33.0",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.95.2",
+    "framer-motion": "https://esm.sh/framer-motion@^12.33.0",
+    "canvas-confetti": "https://esm.sh/canvas-confetti@^1.9.4",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
     "uuid": "https://esm.sh/uuid@^13.0.0",
-    "canvas-confetti": "https://esm.sh/canvas-confetti@^1.9.4"
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.3"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
