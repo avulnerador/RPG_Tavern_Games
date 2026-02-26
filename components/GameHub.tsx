@@ -9,6 +9,7 @@ interface GameHubProps {
   onJoinSession: (code: string) => void;
   onLogout: () => void;
   onUpdateCoins: (amount: number) => void;
+  onOpenTutorial: () => void;
 }
 
 const GAMES = [
