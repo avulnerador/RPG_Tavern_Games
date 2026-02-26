@@ -41,7 +41,7 @@ const GAMES = [
   }
 ];
 
-export const GameHub: React.FC<GameHubProps> = ({ profile, onCreateSession, onJoinSession, onLogout, onUpdateCoins }) => {
+export const GameHub: React.FC<GameHubProps> = ({ profile, onCreateSession, onJoinSession, onLogout, onUpdateCoins, onOpenTutorial }) => {
   const [joinCode, setJoinCode] = useState('');
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [stakeAmount, setStakeAmount] = useState<number>(0);
@@ -134,13 +134,22 @@ export const GameHub: React.FC<GameHubProps> = ({ profile, onCreateSession, onJo
           </button>
         </form>
 
-        <button
-          onClick={onLogout}
-          className="p-3 text-stone-500 hover:text-tavern-red transition-colors"
-          title="Sair"
-        >
-          <LogOut size={20} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onOpenTutorial}
+            className="p-3 text-stone-500 hover:text-tavern-gold transition-colors"
+            title="Guia da Taverna"
+          >
+            <Scroll size={20} />
+          </button>
+          <button
+            onClick={onLogout}
+            className="p-3 text-stone-500 hover:text-tavern-red transition-colors"
+            title="Sair"
+          >
+            <LogOut size={20} />
+          </button>
+        </div>
       </header>
 
       <main className="max-w-6xl mx-auto">

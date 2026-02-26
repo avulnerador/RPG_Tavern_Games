@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ProfileSetup } from './components/ProfileSetup';
 import { GameHub } from './components/GameHub';
+import { TutorialModal } from './components/TutorialModal';
 import { KnucklebonesBoard } from './games/knucklebones/KnucklebonesBoard';
 import { TicTacToeBoard } from './games/tictactoe/TicTacToeBoard';
 import { BugRaceBoard } from './games/bugrace/BugRaceBoard';
@@ -11,9 +12,11 @@ function App() {
   const [screen, setScreen] = useState<AppScreen>('profile');
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [currentSession, setCurrentSession] = useState<TableSession | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('tavern_profile');
+    const tutorialDone = localStorage.getItem('tavern_tutorial_completed');
     if (saved) {
       const parsed = JSON.parse(saved);
 
@@ -61,6 +64,17 @@ function App() {
     setProfile(finalProfile);
     localStorage.setItem('tavern_profile', JSON.stringify(finalProfile));
     setScreen('hub');
+
+    // Trigger tutorial if not done
+    const tutorialDone = localStorage.getItem('tavern_tutorial_completed');
+    if (!tutorialDone) {
+      setShowTutorial(true);
+    }
+  };
+
+  const handleCloseTutorial = () => {
+    setShowTutorial(false);
+    localStorage.setItem('tavern_tutorial_completed', 'true');
   };
 
   const handleLogout = () => {
@@ -181,9 +195,9 @@ function App() {
           profile={profile}
           onCreateSession={handleCreateSession}
           onJoinSession={handleJoinSession}
-
           onLogout={handleLogout}
           onUpdateCoins={handleUpdateCoins}
+          onOpenTutorial={() => setShowTutorial(true)}
         />
       )}
 
@@ -238,6 +252,11 @@ function App() {
           )}
         </>
       )}
+
+      <TutorialModal
+        isOpen={showTutorial}
+        onClose={handleCloseTutorial}
+      />
     </div>
   );
 }
