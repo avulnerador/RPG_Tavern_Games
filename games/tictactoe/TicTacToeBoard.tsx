@@ -97,16 +97,22 @@ export const TicTacToeBoard: React.FC<TicTacToeBoardProps> = ({ roomCode, player
           <span className="text-tavern-parchment font-bold uppercase tracking-widest text-sm">Duelo de Grimórios</span>
         </div>
         <div className="flex items-center gap-4 text-xs font-mono text-stone-500">
-          <span>{gameState.host.score}</span> x <span>{gameState.guest?.score || 0}</span>
+          <div className="flex items-center gap-2">
+            <span>{gameState.host.score}</span> x <span>{gameState.guest?.score || 0}</span>
+          </div>
           {stake > 0 && (
-            <div className="flex items-center gap-1 text-tavern-gold border-l border-white/10 pl-4">
-              <span className="text-[10px] uppercase font-bold">Aposta:</span>
-              <span className="font-bold">{stake}</span>
+            <div className="flex flex-col items-center border-l border-white/10 pl-4">
+              <span className="text-[10px] uppercase font-bold text-stone-500">Aposta</span>
+              <span className="font-bold text-tavern-gold">{stake}</span>
             </div>
           )}
+          <div className="flex flex-col items-center border-l border-white/10 pl-4">
+            <span className="text-[10px] uppercase font-bold text-stone-500">Sua Bolsa</span>
+            <span className="font-bold text-tavern-parchment">{myCoins}</span>
+          </div>
         </div>
-        <button onClick={onLeave} className="text-xs font-bold text-stone-500 hover:text-tavern-gold flex items-center gap-2 transition-colors">
-          <LogOut size={16} /> Sair
+        <button onClick={onLeave} className="text-xs font-bold text-stone-500 hover:text-tavern-gold transition-colors">
+          <LogOut size={16} />
         </button>
       </div>
 

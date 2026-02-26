@@ -194,7 +194,8 @@ export const useBugRaceGame = (
                 let res = 0;
                 if (p.betBugId === wId) {
                     const finalOdds = calculateOdds(wId, players, npcBets);
-                    res = Math.floor((p.betAmount || 0) * finalOdds);
+                    // Net Gain: (Pote Final) - (Aposta Original)
+                    res = Math.floor((p.betAmount || 0) * finalOdds) - (p.betAmount || 0);
                 } else if (p.betBugId) {
                     res = -(p.betAmount || 0);
                 }
@@ -205,18 +206,18 @@ export const useBugRaceGame = (
             setPlayers(results);
             // Broadcast to all clients
             socketRef.current.broadcast('race_results', { players: results });
-            setCommentary(payout > 0 ? `VITÓRIA! Ganhou ${payout} moedas!` : (mySelectedBug ? `Derrota! Sorte na próxima.` : `Vencedor: ${wId}`));
+            setCommentary(payout > 0 ? `VITÓRIA! Lucrou ${payout - myBetAmount} moedas!` : (mySelectedBug ? `Derrota! Sorte na próxima.` : `Vencedor: ${wId}`));
         } else {
             // Guest updates local player immediately for fast feedback
             setPlayers(prev => prev.map(p => {
                 if (p.playerId === myId) {
-                    const res = payout > 0 ? payout : (mySelectedBug ? -myBetAmount : 0);
+                    const res = payout > 0 ? (payout - myBetAmount) : (mySelectedBug ? -myBetAmount : 0);
                     return { ...p, lastResult: res };
                 }
                 return p;
             }));
             // Commentary for guests can be updated here based on their own payout
-            setCommentary(payout > 0 ? `VITÓRIA! Ganhou ${payout} moedas!` : (mySelectedBug ? `Derrota! Sorte na próxima.` : `Vencedor: ${wId}`));
+            setCommentary(payout > 0 ? `VITÓRIA! Lucrou ${payout - myBetAmount} moedas!` : (mySelectedBug ? `Derrota! Sorte na próxima.` : `Vencedor: ${wId}`));
         }
     };
 

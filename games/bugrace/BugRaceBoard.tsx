@@ -434,17 +434,28 @@ export const BugRaceBoard: React.FC<BugRaceBoardProps> = ({ roomCode, isHost, pl
                                         </table>
                                     </div>
 
-                                    {isHost ? (
+                                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                                        {isHost && (
+                                            <button
+                                                onClick={startBettingPhase}
+                                                className="flex-1 max-w-xs bg-tavern-gold hover:bg-yellow-500 text-tavern-900 font-bold py-4 px-8 rounded-xl flex items-center justify-center gap-2 uppercase tracking-widest shadow-[0_0_30px_rgba(251,191,36,0.3)] transition-all hover:scale-105 active:scale-95"
+                                            >
+                                                <RefreshCw size={20} /> Nova Rodada
+                                            </button>
+                                        )}
+
                                         <button
-                                            onClick={startBettingPhase}
-                                            className="bg-tavern-gold hover:bg-yellow-500 text-tavern-900 font-bold py-4 px-12 rounded-xl flex items-center gap-2 uppercase tracking-widest shadow-[0_0_30px_rgba(251,191,36,0.3)] transition-all hover:scale-105 active:scale-95"
+                                            onClick={onLeave}
+                                            className={`flex-1 max-w-xs py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all uppercase tracking-widest border ${isHost ? 'bg-tavern-800/80 border-tavern-gold/20 text-stone-400 hover:text-white' : 'bg-tavern-gold text-tavern-900 border-yellow-700 shadow-lg hover:scale-105'
+                                                }`}
                                         >
-                                            <RefreshCw size={20} /> Iniciar Nova Rodada
+                                            <LogOut size={20} /> Voltar para a Taverna
                                         </button>
-                                    ) : (
-                                        <div className="bg-tavern-900/60 p-4 rounded-xl border border-tavern-accent/20 flex items-center gap-3">
+                                    </div>
+                                    {!isHost && (
+                                        <div className="mt-4 bg-tavern-900/60 p-4 rounded-xl border border-tavern-accent/20 flex items-center gap-3">
                                             <div className="w-2 h-2 bg-tavern-gold rounded-full animate-pulse"></div>
-                                            <span className="text-sm italic text-stone-400 font-serif">Aguardando o Mestre da Taverna expulsar os perdedores e iniciar outra...</span>
+                                            <span className="text-sm italic text-stone-400 font-serif">Aguardando o Mestre iniciar outra corrida...</span>
                                         </div>
                                     )}
                                 </div>
